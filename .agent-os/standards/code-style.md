@@ -92,3 +92,12 @@ IF current task involves writing or updating **.NET/C#** code:
   </context_fetcher_strategy>
 
 </conditional-block>
+
+<conditional-block task-condition="angular" context-check="angular-style">
+IF current task involves writing or updating **Angular** code:
+  IF angular-style.md already in context:
+    SKIP: Re-reading this file
+    NOTE: "Using Angular style guide already in context"
+  ELSE:
+    READ: @.agent-os/standards/code-style/angular-style.md
+</conditional-block>

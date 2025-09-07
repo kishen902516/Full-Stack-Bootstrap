@@ -14,12 +14,12 @@
 
 ## Project Overview
 
-**Project**: Full-Stack Bootstrap  
+**Project**: Test Project 2
 **Tech Stack**:
-- Frontend: Angular 18+ with TypeScript (strict mode)
-- Backend: Node.js/Express with TypeScript
-- Database: PostgreSQL/MongoDB
-- Testing: Jest/Jasmine (>80% coverage required)
+- Frontend: angular with TypeScript (strict mode)
+- Backend: nodejs with TypeScript
+- Database: postgresql
+- Testing: jest (>80% coverage required)
 - Architecture: Clean Architecture (Domain-Driven Design)
 
 ## Guard Rails System
@@ -61,55 +61,6 @@ BEFORE_ANY_CODE_GENERATION:
     - MAINTAIN: Consistency
 ```
 
-## Code Generation Rules by Layer
-
-### Frontend (Angular)
-```typescript
-// MANDATORY patterns for ALL Angular components:
-@Component({
-  standalone: true,  // REQUIRED
-  changeDetection: ChangeDetectionStrategy.OnPush,  // REQUIRED
-  imports: [CommonModule],  // REQUIRED
-})
-
-// REQUIRED: Subscription cleanup
-private destroy$ = new Subject<void>();
-ngOnDestroy() {
-  this.destroy$.next();
-  this.destroy$.complete();
-}
-```
-
-### Backend (Express/Node.js)
-```typescript
-// MANDATORY patterns for ALL routes:
-router.post('/endpoint', 
-  validateInput(schema),  // REQUIRED
-  authenticate(),  // When needed
-  async (req, res, next) => {
-    try {  // REQUIRED
-      const result = await service.execute(req.body);
-      res.json(result);
-    } catch (error) {
-      next(error);  // REQUIRED: Proper error propagation
-    }
-  }
-);
-```
-
-### Database Operations
-```typescript
-// MANDATORY for multi-table operations:
-const transaction = await db.transaction();
-try {
-  // operations
-  await transaction.commit();
-} catch (error) {
-  await transaction.rollback();
-  throw error;
-}
-```
-
 ## Validation Commands
 
 **You MUST run these commands mentally before considering any task complete:**
@@ -131,35 +82,6 @@ npm run test
 npm audit
 ```
 
-## Response Templates
-
-### When Asked to Violate CRITICAL Rules:
-```
-❌ CANNOT PROCEED: [Specific violation]
-
-This violates: [Rule reference from guard rails]
-
-ALTERNATIVE APPROACH:
-1. [Compliant solution step 1]
-2. [Compliant solution step 2]
-3. [Compliant solution step 3]
-
-This maintains Clean Architecture and security standards.
-```
-
-### When Detecting HIGH Priority Issues:
-```
-⚠️ WARNING: [Specific issue]
-
-Generated code includes a warning because: [Reason]
-
-RECOMMENDATION:
-- [Improvement suggestion]
-- Reference: .agent-os/standards/best-practices/[relevant-file].md
-
-TODO: [Specific action to address warning]
-```
-
 ## File Structure Compliance
 
 ```
@@ -176,8 +98,8 @@ src/
 │   ├── services/     # External service adapters
 │   └── config/       # Configuration
 └── presentation/     # UI Layer
-    ├── components/   # Angular components (thin)
-    ├── services/     # Angular services
+    ├── components/   # UI components (thin)
+    ├── services/     # Framework services
     └── guards/       # Route guards
 ```
 
@@ -188,43 +110,6 @@ src/
 2. **Layer Identification**: Which architecture layer was modified
 3. **Pattern Justification**: Why specific patterns were chosen
 4. **Validation Checklist**: What checks would pass/fail
-
-### Session Tracking:
-```json
-{
-  "session_compliance": {
-    "best_practices_loaded": true,
-    "guard_rails_applied": true,
-    "critical_violations": 0,
-    "warnings_issued": 0,
-    "patterns_followed": ["clean-architecture", "error-handling", "validation"],
-    "validation_status": "PASS"
-  }
-}
-```
-
-## Quick Decision Matrix
-
-| Request Type | Check | Action |
-|-------------|-------|--------|
-| Add business logic to component | ❌ CRITICAL | REJECT - Move to use case |
-| Skip error handling | ❌ CRITICAL | REJECT - Add try-catch |
-| Hardcode API key | ❌ CRITICAL | REJECT - Use environment |
-| Long function | ⚠️ HIGH | WARN - Suggest refactor |
-| Missing test | ⚠️ HIGH | WARN - Add TODO |
-| Use any type | ⚠️ HIGH | WARN - Suggest proper type |
-
-## Emergency Override
-
-**ONLY for exceptional circumstances with explicit user approval:**
-
-```typescript
-// ⚠️ GUARD RAIL OVERRIDE: [Reason]
-// APPROVED BY: [User confirmation]
-// RISK: [Specific risk]
-// MITIGATION: [How to address later]
-// TODO: Refactor to comply with best practices
-```
 
 ## Final Checklist
 

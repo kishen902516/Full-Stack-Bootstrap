@@ -37,34 +37,147 @@ display_header() {
     echo
 }
 
+# Function to install GitHub CLI
+install_github_cli() {
+    echo -e "${YELLOW}Installing GitHub CLI...${NC}"
+    
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux
+        if command -v apt-get &> /dev/null; then
+            # Ubuntu/Debian
+            echo "Installing via apt-get..."
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh -y
+        elif command -v dnf &> /dev/null; then
+            # Fedora
+            echo "Installing via dnf..."
+            sudo dnf install 'dnf-command(config-manager)' -y
+            sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+            sudo dnf install gh -y
+        elif command -v yum &> /dev/null; then
+            # CentOS/RHEL
+            echo "Installing via yum..."
+            sudo yum install -y yum-utils
+            sudo yum-config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+            sudo yum install gh -y
+        else
+            echo -e "${RED}Unable to auto-install on this Linux distribution.${NC}"
+            echo "Please install manually: https://github.com/cli/cli/releases"
+            return 1
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        if command -v brew &> /dev/null; then
+            echo "Installing via Homebrew..."
+            brew install gh
+        else
+            echo -e "${RED}Homebrew not found. Please install Homebrew first or install GitHub CLI manually.${NC}"
+            echo "Install Homebrew: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+            echo "Or install GitHub CLI manually: https://github.com/cli/cli/releases"
+            return 1
+        fi
+    elif [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "mingw"* ]]; then
+        # Windows (Git Bash/MSYS2/MinGW)
+        if command -v winget &> /dev/null; then
+            echo "Installing via winget..."
+            winget install --id GitHub.cli
+        elif command -v choco &> /dev/null; then
+            echo "Installing via Chocolatey..."
+            choco install gh -y
+        elif command -v scoop &> /dev/null; then
+            echo "Installing via Scoop..."
+            scoop install gh
+        else
+            echo -e "${RED}No package manager found (winget, choco, or scoop).${NC}"
+            echo "Please install GitHub CLI manually: https://github.com/cli/cli/releases"
+            echo "Or install a package manager:"
+            echo "  - Chocolatey: https://chocolatey.org/install"
+            echo "  - Scoop: https://scoop.sh/"
+            return 1
+        fi
+    else
+        echo -e "${RED}Unsupported operating system: $OSTYPE${NC}"
+        echo "Please install GitHub CLI manually: https://github.com/cli/cli/releases"
+        return 1
+    fi
+    
+    # Verify installation
+    if command -v gh &> /dev/null; then
+        echo -e "${GREEN}✓ GitHub CLI installed successfully${NC}"
+        return 0
+    else
+        echo -e "${RED}Failed to install GitHub CLI${NC}"
+        return 1
+    fi
+}
+
+# Function to authenticate with GitHub
+authenticate_github() {
+    echo -e "${YELLOW}Authenticating with GitHub...${NC}"
+    echo "This will open your web browser to authenticate with GitHub."
+    echo "Choose 'HTTPS' when prompted for Git protocol preference."
+    echo
+    read -p "Press Enter to continue..."
+    
+    # Run GitHub authentication
+    if gh auth login; then
+        echo -e "${GREEN}✓ Successfully authenticated with GitHub${NC}"
+        return 0
+    else
+        echo -e "${RED}Failed to authenticate with GitHub${NC}"
+        return 1
+    fi
+}
+
 # Function to check prerequisites
 check_prerequisites() {
     echo -e "${YELLOW}Checking prerequisites...${NC}"
     
+    # Check if git is installed first
+    if ! command -v git &> /dev/null; then
+        echo -e "${RED}Error: Git is not installed.${NC}"
+        echo "Please install Git first: https://git-scm.com/downloads"
+        exit 1
+    fi
+    
     # Check if gh CLI is installed
     if ! command -v gh &> /dev/null; then
-        echo -e "${RED}Error: GitHub CLI (gh) is not installed.${NC}"
-        echo "Please install it: https://cli.github.com/"
-        echo "On Windows: winget install --id GitHub.cli"
-        echo "On macOS: brew install gh"
-        echo "On Linux: sudo apt install gh"
-        exit 1
+        echo -e "${YELLOW}GitHub CLI (gh) is not installed.${NC}"
+        read -p "Would you like to install it automatically? (y/n): " install_choice
+        
+        if [ "$install_choice" = "y" ] || [ "$install_choice" = "Y" ]; then
+            if ! install_github_cli; then
+                echo -e "${RED}Failed to install GitHub CLI. Please install manually and try again.${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${RED}GitHub CLI is required. Please install it manually:${NC}"
+            echo "  Windows: winget install --id GitHub.cli"
+            echo "  macOS: brew install gh"
+            echo "  Linux: Check https://github.com/cli/cli/blob/trunk/docs/install_linux.md"
+            exit 1
+        fi
     fi
     
     # Check if user is authenticated
     if ! gh auth status &> /dev/null; then
-        echo -e "${RED}Error: You are not authenticated with GitHub CLI.${NC}"
-        echo "Please run: gh auth login"
-        exit 1
+        echo -e "${YELLOW}You are not authenticated with GitHub CLI.${NC}"
+        read -p "Would you like to authenticate now? (y/n): " auth_choice
+        
+        if [ "$auth_choice" = "y" ] || [ "$auth_choice" = "Y" ]; then
+            if ! authenticate_github; then
+                echo -e "${RED}Failed to authenticate with GitHub. Please run 'gh auth login' manually.${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${RED}GitHub authentication is required. Please run 'gh auth login' and try again.${NC}"
+            exit 1
+        fi
     fi
     
-    # Check if git is installed
-    if ! command -v git &> /dev/null; then
-        echo -e "${RED}Error: Git is not installed.${NC}"
-        exit 1
-    fi
-    
-    echo -e "${GREEN}✓ Prerequisites checked${NC}"
+    echo -e "${GREEN}✓ All prerequisites satisfied${NC}"
 }
 
 # Function to get project configuration

@@ -813,13 +813,13 @@ main() {
         echo -e "\n${YELLOW}Setting up MCP servers...${NC}"
         if [ -f "./setup/setup-mcp.sh" ]; then
             chmod +x "./setup/setup-mcp.sh"
-            "./setup/setup-mcp.sh"
+            "./setup/setup-mcp.sh" "$project_dir"
         else
             echo -e "${RED}MCP setup script not found at ./setup/setup-mcp.sh${NC}"
             echo "You can run it manually later when the script is available."
         fi
     else
-        echo -e "${BLUE}MCP setup skipped. You can run it later with: ./setup/setup-mcp.sh${NC}"
+        echo -e "${BLUE}MCP setup skipped. You can run it later with: ./setup/setup-mcp.sh \"$project_dir\"${NC}"
     fi
     
     echo

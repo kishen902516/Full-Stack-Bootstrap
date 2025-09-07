@@ -453,13 +453,7 @@ git push origin v1.0.0
 
 ## Related Repositories
 
-Part of the $PROJECT_NAME polyrepo architecture:
-
-$(for key in "${!SELECTED_REPOS[@]}"; do
-    if [ "$key" != "contracts" ]; then
-        echo "- [${SELECTED_REPOS[$key]}](https://github.com/$REPO_PREFIX/${SELECTED_REPOS[$key]})"
-    fi
-done)
+Part of the $PROJECT_NAME polyrepo architecture. Other repositories will be listed here as they are created.
 EOF
 
     # Create directory structure
@@ -646,13 +640,7 @@ npm run dev
 
 ## Related Services
 
-Part of the $PROJECT_NAME polyrepo architecture:
-
-$(for key in "${!SELECTED_REPOS[@]}"; do
-    if [ "$key" != "$service_type" ]; then
-        echo "- [${SELECTED_REPOS[$key]}](https://github.com/$REPO_PREFIX/${SELECTED_REPOS[$key]})"
-    fi
-done)
+Part of the $PROJECT_NAME polyrepo architecture. Other services will be listed here as they are created.
 EOF
 
     # Create basic package.json for Node.js service
@@ -774,13 +762,7 @@ npm run test
 
 ## Related Services
 
-Part of the $PROJECT_NAME polyrepo architecture:
-
-$(for key in "${!SELECTED_REPOS[@]}"; do
-    if [ "$key" != "$webapp_type" ]; then
-        echo "- [${SELECTED_REPOS[$key]}](https://github.com/$REPO_PREFIX/${SELECTED_REPOS[$key]})"
-    fi
-done)
+Part of the $PROJECT_NAME polyrepo architecture. Other services will be listed here as they are created.
 EOF
 
     # Create basic package.json for webapp

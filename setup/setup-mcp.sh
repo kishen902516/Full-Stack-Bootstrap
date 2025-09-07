@@ -14,9 +14,9 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Configuration
-CLAUDE_CODE_CONFIG_DIR="$HOME/.config/claude-code"
-MCP_CONFIG_FILE="$CLAUDE_CODE_CONFIG_DIR/mcp_servers.json"
+# Configuration will be set in main function based on project directory
+CLAUDE_CODE_CONFIG_DIR=""
+MCP_CONFIG_FILE=""
 
 # Function to display header
 display_header() {
@@ -64,9 +64,9 @@ check_and_install_packages() {
     done
 }
 
-# Function to create Claude Code config directory
+# Function to create MCP config directory in project
 create_config_directory() {
-    echo -e "${YELLOW}Creating Claude Code configuration directory...${NC}"
+    echo -e "${YELLOW}Creating MCP configuration directory in project...${NC}"
     
     if [ ! -d "$CLAUDE_CODE_CONFIG_DIR" ]; then
         mkdir -p "$CLAUDE_CODE_CONFIG_DIR"
@@ -255,9 +255,12 @@ display_usage_instructions() {
     echo "  • Atlassian - Jira and Confluence integration"
     echo
     echo -e "${YELLOW}Next Steps:${NC}"
-    echo "  1. Restart Claude Code to load the new MCP configuration"
-    echo "  2. Verify MCP servers are working by testing commands"
-    echo "  3. Update tokens/credentials in $MCP_CONFIG_FILE if needed"
+    echo "  1. Copy the MCP configuration to Claude Code's config directory:"
+    echo "     mkdir -p ~/.config/claude-code"
+    echo "     cp $MCP_CONFIG_FILE ~/.config/claude-code/"
+    echo "  2. Restart Claude Code to load the new MCP configuration"
+    echo "  3. Verify MCP servers are working by testing commands"
+    echo "  4. Update tokens/credentials in the config file if needed"
     echo
     echo -e "${BLUE}Testing MCP Servers:${NC}"
     echo "  • GitHub: Ask Claude to list repositories or issues"
@@ -310,6 +313,10 @@ main() {
     
     # Convert to absolute path
     project_dir=$(realpath "$project_dir" 2>/dev/null || readlink -f "$project_dir" 2>/dev/null || echo "$project_dir")
+    
+    # Set configuration paths based on project directory
+    CLAUDE_CODE_CONFIG_DIR="$project_dir/.claude-code"
+    MCP_CONFIG_FILE="$CLAUDE_CODE_CONFIG_DIR/mcp_servers.json"
     
     display_header
     

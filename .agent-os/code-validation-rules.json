@@ -1,0 +1,313 @@
+{
+  "version": "1.0.0",
+  "rules": {
+    "critical": {
+      "architecture": {
+        "cleanArchitecture": {
+          "enabled": true,
+          "severity": "error",
+          "rules": [
+            {
+              "id": "no-framework-in-domain",
+              "pattern": "domain/**/*.ts",
+              "forbidden": ["@angular", "express", "@nestjs", "typeorm", "mongoose"],
+              "message": "Domain layer must not depend on frameworks"
+            },
+            {
+              "id": "no-business-logic-in-ui",
+              "pattern": "**/*.component.ts",
+              "forbidden": ["calculatePrice", "validateBusiness", "processPayment"],
+              "message": "Business logic must not be in UI components"
+            },
+            {
+              "id": "dependency-direction",
+              "from": ["domain/**"],
+              "cannotImport": ["application/**", "infrastructure/**", "presentation/**"],
+              "message": "Dependencies must point inward toward domain"
+            }
+          ]
+        }
+      },
+      "security": {
+        "secrets": {
+          "enabled": true,
+          "severity": "error",
+          "patterns": [
+            {
+              "id": "no-hardcoded-secrets",
+              "regex": "(api[_-]?key|secret|password|token)\\s*=\\s*[\"'][^\"']+[\"']",
+              "message": "Never hardcode secrets or API keys"
+            },
+            {
+              "id": "no-console-secrets",
+              "regex": "console\\.(log|error|info).*?(password|token|secret)",
+              "message": "Never log sensitive information"
+            }
+          ]
+        },
+        "validation": {
+          "enabled": true,
+          "severity": "error",
+          "requireFor": ["POST", "PUT", "PATCH"],
+          "message": "All user inputs must be validated"
+        }
+      },
+      "errorHandling": {
+        "enabled": true,
+        "severity": "error",
+        "rules": [
+          {
+            "id": "async-try-catch",
+            "pattern": "async\\s+function|async\\s*\\(",
+            "require": "try.*catch",
+            "message": "Async functions must have try-catch blocks"
+          },
+          {
+            "id": "promise-catch",
+            "pattern": "\\.then\\(",
+            "require": "\\.catch\\(",
+            "message": "Promises must have catch handlers"
+          }
+        ]
+      }
+    },
+    "high": {
+      "codeQuality": {
+        "complexity": {
+          "enabled": true,
+          "severity": "warning",
+          "maxCyclomaticComplexity": 10,
+          "maxFunctionLength": 50,
+          "maxFileLength": 300
+        },
+        "duplication": {
+          "enabled": true,
+          "severity": "warning",
+          "maxDuplicateLines": 5,
+          "message": "Extract duplicated code to utilities"
+        }
+      },
+      "typescript": {
+        "strictMode": {
+          "enabled": true,
+          "severity": "warning",
+          "required": [
+            "strict",
+            "noImplicitAny",
+            "strictNullChecks",
+            "strictFunctionTypes"
+          ]
+        },
+        "typing": {
+          "enabled": true,
+          "severity": "warning",
+          "noAnyType": true,
+          "requireReturnType": true,
+          "requireParameterTypes": true
+        }
+      },
+      "testing": {
+        "coverage": {
+          "enabled": true,
+          "severity": "warning",
+          "minimum": {
+            "statements": 80,
+            "branches": 80,
+            "functions": 80,
+            "lines": 80
+          }
+        },
+        "required": {
+          "enabled": true,
+          "severity": "warning",
+          "forNewFiles": true,
+          "forModifiedFiles": true
+        }
+      }
+    },
+    "recommended": {
+      "performance": {
+        "angular": {
+          "enabled": true,
+          "severity": "info",
+          "rules": [
+            "use-onpush-change-detection",
+            "use-track-by-functions",
+            "avoid-complex-template-expressions",
+            "lazy-load-modules"
+          ]
+        },
+        "database": {
+          "enabled": true,
+          "severity": "info",
+          "rules": [
+            "use-indexes-on-foreign-keys",
+            "batch-operations-when-possible",
+            "use-connection-pooling",
+            "implement-query-caching"
+          ]
+        }
+      },
+      "maintainability": {
+        "naming": {
+          "enabled": true,
+          "severity": "info",
+          "conventions": {
+            "files": "kebab-case",
+            "classes": "PascalCase",
+            "interfaces": "IPascalCase",
+            "constants": "UPPER_SNAKE_CASE",
+            "functions": "camelCase"
+          }
+        },
+        "documentation": {
+          "enabled": true,
+          "severity": "info",
+          "requireFor": [
+            "public-apis",
+            "complex-functions",
+            "non-obvious-logic"
+          ]
+        }
+      }
+    }
+  },
+  "validation": {
+    "preCommit": {
+      "enabled": true,
+      "commands": [
+        {
+          "name": "lint",
+          "command": "npm run lint",
+          "failOnError": true
+        },
+        {
+          "name": "typecheck",
+          "command": "npm run typecheck",
+          "failOnError": true
+        },
+        {
+          "name": "test",
+          "command": "npm run test:affected",
+          "failOnError": false
+        },
+        {
+          "name": "architecture",
+          "command": "npm run check:architecture",
+          "failOnError": true
+        }
+      ]
+    },
+    "preMerge": {
+      "enabled": true,
+      "requirements": [
+        "all-checks-passing",
+        "code-review-approved",
+        "no-critical-violations",
+        "test-coverage-maintained"
+      ]
+    }
+  },
+  "enforcement": {
+    "mode": "strict",
+    "blockOn": ["critical"],
+    "warnOn": ["high"],
+    "suggestOn": ["recommended"],
+    "reporting": {
+      "enabled": true,
+      "output": ".agent-os/validation-reports/",
+      "format": "json"
+    }
+  },
+  "exemptions": {
+    "allowed": false,
+    "requiresApproval": true,
+    "approvers": ["lead-developer", "architect"],
+    "maxDuration": "7d",
+    "documentation": "required"
+  },
+  "customRules": {
+    "angular": {
+      "componentStructure": {
+        "enabled": true,
+        "require": {
+          "standalone": true,
+          "changeDetection": "OnPush",
+          "imports": ["CommonModule"],
+          "providers": "optional"
+        }
+      },
+      "subscriptionManagement": {
+        "enabled": true,
+        "pattern": "destroy$|unsubscribe|takeUntil",
+        "message": "Subscriptions must be properly managed"
+      }
+    },
+    "express": {
+      "routeStructure": {
+        "enabled": true,
+        "require": {
+          "asyncHandler": true,
+          "validation": true,
+          "authentication": "when-needed",
+          "errorHandling": true
+        }
+      },
+      "middleware": {
+        "enabled": true,
+        "order": [
+          "cors",
+          "helmet",
+          "compression",
+          "body-parser",
+          "authentication",
+          "validation",
+          "route-handler",
+          "error-handler"
+        ]
+      }
+    },
+    "database": {
+      "migrations": {
+        "enabled": true,
+        "require": {
+          "up": true,
+          "down": true,
+          "transaction": true,
+          "testing": true
+        }
+      },
+      "queries": {
+        "enabled": true,
+        "require": {
+          "parameterized": true,
+          "indexed": true,
+          "limited": true,
+          "optimized": true
+        }
+      }
+    }
+  },
+  "llmSpecific": {
+    "preGenerationChecks": [
+      "load-best-practices",
+      "identify-architecture-layer",
+      "check-existing-patterns",
+      "verify-no-violations"
+    ],
+    "postGenerationValidation": [
+      "lint-check",
+      "type-check",
+      "architecture-check",
+      "security-scan"
+    ],
+    "autoEnforce": {
+      "enabled": true,
+      "actions": {
+        "onCriticalViolation": "reject",
+        "onHighViolation": "warn",
+        "onRecommendedViolation": "suggest"
+      }
+    }
+  }
+}

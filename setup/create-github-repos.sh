@@ -417,7 +417,7 @@ Shared contracts, API specifications, and type definitions for the $PROJECT_NAME
 
 ## Structure
 
-\`\`\`
+\\\`\\\`\\\`
 contracts/
 ├── api/                 # REST API specifications
 │   ├── openapi/        # OpenAPI 3.0 specs
@@ -432,24 +432,24 @@ contracts/
 │   ├── typography.json
 │   └── spacing.json
 └── docs/               # Contract documentation
-```
+\\\`\\\`\\\`
 
 ## Usage
 
 This repository publishes versioned packages:
 
-- \`@$REPO_BASE_NAME/api-types\` - TypeScript API types
-- \`@$REPO_BASE_NAME/design-tokens\` - Design system tokens
-- \`@$REPO_BASE_NAME/schemas\` - Validation schemas
+- \\\`@$REPO_BASE_NAME/api-types\\\` - TypeScript API types
+- \\\`@$REPO_BASE_NAME/design-tokens\\\` - Design system tokens  
+- \\\`@$REPO_BASE_NAME/schemas\\\` - Validation schemas
 
 ## Publishing
 
 Contracts are automatically published to npm registry on tag creation:
 
-\`\`\`bash
+\\\`\\\`\\\`bash
 git tag v1.0.0
 git push origin v1.0.0
-\`\`\`
+\\\`\\\`\\\`
 
 ## Related Repositories
 
@@ -692,7 +692,7 @@ async function main() {
   const server = createServer();
   
   server.listen(PORT, () => {
-    console.log(\`🚀 $service_description running on port \${PORT}\`);
+    console.log(\\\`🚀 $service_description running on port \\\${PORT}\\\`);
   });
 }
 

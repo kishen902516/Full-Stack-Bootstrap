@@ -112,7 +112,7 @@ download_setup_script() {
     fi
     
     # Download additional setup scripts if they exist
-    local additional_scripts=("setup-mcp.sh" "create-github-repos.sh")
+    local additional_scripts=("setup-mcp.sh" "create-github-repos.sh", "config.yml.template")
     
     for script in "${additional_scripts[@]}"; do
         local script_url="$GITHUB_RAW_BASE/setup/$script"

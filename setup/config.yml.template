@@ -1,0 +1,23 @@
+# MCP Server Configuration Template
+# Copy this file to config.yml and fill in your API tokens
+
+# GitHub Configuration
+github:
+  # Create a personal access token at: https://github.com/settings/tokens
+  # Required permissions: repo, read:org, read:user
+  personal_access_token: "your_github_token_here"
+
+# Atlassian Configuration  
+atlassian:
+  # Get API token from: https://id.atlassian.com/manage-profile/security/api-tokens
+  domain: "your_company.atlassian.net"
+  email: "your_email@example.com"
+  api_token: "your_atlassian_token_here"
+
+# Context7 Configuration (automatically configured with project path)
+context7:
+  enabled: true
+
+# Playwright Configuration (no additional config needed)
+playwright:
+  enabled: true

@@ -17,6 +17,13 @@ NC='\033[0m' # No Color
 # Configuration will be set in main function based on project directory
 CLAUDE_CODE_CONFIG_DIR=""
 MCP_CONFIG_FILE=""
+CONFIG_YML_FILE=""
+
+# Global variables for config values
+GITHUB_TOKEN=""
+ATLASSIAN_DOMAIN=""
+ATLASSIAN_EMAIL=""
+ATLASSIAN_TOKEN=""
 
 # Function to display header
 display_header() {
@@ -25,6 +32,59 @@ display_header() {
     echo -e "${BLUE}     MCP Configuration for Claude Code     ${NC}"
     echo -e "${BLUE}============================================${NC}"
     echo
+}
+
+# Function to create config.yml if it doesn't exist
+create_config_template() {
+    local config_template="$1"
+    local config_file="$2"
+    
+    if [ ! -f "$config_file" ]; then
+        echo -e "${YELLOW}Creating config.yml from template...${NC}"
+        if [ -f "$config_template" ]; then
+            cp "$config_template" "$config_file"
+            echo -e "${GREEN}✓ Created config.yml - please edit it with your API tokens${NC}"
+            return 0
+        else
+            echo -e "${RED}✗ Template file not found: $config_template${NC}"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+# Function to parse YAML config file
+parse_config_yml() {
+    local config_file="$1"
+    
+    if [ ! -f "$config_file" ]; then
+        echo -e "${YELLOW}⚠ Config file not found: $config_file${NC}"
+        return 1
+    fi
+    
+    echo -e "${YELLOW}Reading configuration from config.yml...${NC}"
+    
+    # Parse GitHub token
+    GITHUB_TOKEN=$(grep -A 5 "^github:" "$config_file" | grep "personal_access_token:" | sed 's/.*personal_access_token:[[:space:]]*["\x27]\?\([^"\x27]*\)["\x27]\?.*/\1/' | tr -d ' ')
+    
+    # Parse Atlassian config
+    ATLASSIAN_DOMAIN=$(grep -A 10 "^atlassian:" "$config_file" | grep "domain:" | sed 's/.*domain:[[:space:]]*["\x27]\?\([^"\x27]*\)["\x27]\?.*/\1/' | tr -d ' ')
+    ATLASSIAN_EMAIL=$(grep -A 10 "^atlassian:" "$config_file" | grep "email:" | sed 's/.*email:[[:space:]]*["\x27]\?\([^"\x27]*\)["\x27]\?.*/\1/' | tr -d ' ')
+    ATLASSIAN_TOKEN=$(grep -A 10 "^atlassian:" "$config_file" | grep "api_token:" | sed 's/.*api_token:[[:space:]]*["\x27]\?\([^"\x27]*\)["\x27]\?.*/\1/' | tr -d ' ')
+    
+    # Clean up placeholder values
+    [ "$GITHUB_TOKEN" = "your_github_token_here" ] && GITHUB_TOKEN=""
+    [ "$ATLASSIAN_DOMAIN" = "your_company.atlassian.net" ] && ATLASSIAN_DOMAIN=""
+    [ "$ATLASSIAN_EMAIL" = "your_email@example.com" ] && ATLASSIAN_EMAIL=""
+    [ "$ATLASSIAN_TOKEN" = "your_atlassian_token_here" ] && ATLASSIAN_TOKEN=""
+    
+    # Display what was found (without showing actual tokens)
+    echo -e "  ${GREEN}✓ GitHub token:${NC} $([ -n "$GITHUB_TOKEN" ] && echo "configured" || echo "not configured")"
+    echo -e "  ${GREEN}✓ Atlassian domain:${NC} $([ -n "$ATLASSIAN_DOMAIN" ] && echo "$ATLASSIAN_DOMAIN" || echo "not configured")"
+    echo -e "  ${GREEN}✓ Atlassian email:${NC} $([ -n "$ATLASSIAN_EMAIL" ] && echo "$ATLASSIAN_EMAIL" || echo "not configured")"
+    echo -e "  ${GREEN}✓ Atlassian token:${NC} $([ -n "$ATLASSIAN_TOKEN" ] && echo "configured" || echo "not configured")"
+    
+    return 0
 }
 
 # Function to check if npm is installed
@@ -85,54 +145,6 @@ backup_existing_config() {
     fi
 }
 
-# Function to get GitHub token
-get_github_token() {
-    echo -e "\n${BLUE}GitHub MCP Server Configuration:${NC}"
-    echo "For the GitHub MCP server to work, you need a GitHub Personal Access Token."
-    echo "You can create one at: https://github.com/settings/tokens"
-    echo "Required permissions: repo, read:org, read:user"
-    echo
-    
-    while true; do
-        read -s -p "Enter your GitHub Personal Access Token (or press Enter to skip): " github_token
-        echo
-        
-        if [ -z "$github_token" ]; then
-            echo -e "${YELLOW}⚠ GitHub token not provided. GitHub MCP server will be configured but may not work without a token.${NC}"
-            return 0
-        else
-            echo -e "${GREEN}✓ GitHub token provided${NC}"
-            break
-        fi
-    done
-}
-
-# Function to get Atlassian configuration
-get_atlassian_config() {
-    echo -e "\n${BLUE}Atlassian MCP Server Configuration:${NC}"
-    echo "For the Atlassian MCP server, you need:"
-    echo "1. Atlassian API Token (https://id.atlassian.com/manage-profile/security/api-tokens)"
-    echo "2. Your Atlassian domain (e.g., yourcompany.atlassian.net)"
-    echo "3. Your email address"
-    echo
-    
-    read -p "Enter your Atlassian domain (or press Enter to skip): " atlassian_domain
-    
-    if [ -z "$atlassian_domain" ]; then
-        echo -e "${YELLOW}⚠ Atlassian configuration skipped${NC}"
-        return 0
-    fi
-    
-    read -p "Enter your email address: " atlassian_email
-    read -s -p "Enter your Atlassian API token: " atlassian_token
-    echo
-    
-    if [ -n "$atlassian_domain" ] && [ -n "$atlassian_email" ] && [ -n "$atlassian_token" ]; then
-        echo -e "${GREEN}✓ Atlassian configuration provided${NC}"
-    else
-        echo -e "${YELLOW}⚠ Incomplete Atlassian configuration. Server will be configured but may not work.${NC}"
-    fi
-}
 
 # Function to generate MCP configuration
 generate_mcp_config() {
@@ -151,8 +163,8 @@ generate_mcp_config() {
 EOF
 
     # Add GitHub token if provided
-    if [ -n "$github_token" ]; then
-        echo "        \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"$github_token\"" >> "$MCP_CONFIG_FILE"
+    if [ -n "$GITHUB_TOKEN" ]; then
+        echo "        \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"$GITHUB_TOKEN\"" >> "$MCP_CONFIG_FILE"
     else
         echo "        \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"your_github_token_here\"" >> "$MCP_CONFIG_FILE"
     fi
@@ -174,15 +186,15 @@ EOF
 EOF
 
     # Add Atlassian configuration if provided
-    if [ -n "$atlassian_domain" ]; then
+    if [ -n "$ATLASSIAN_DOMAIN" ]; then
         cat >> "$MCP_CONFIG_FILE" << EOF
     "atlassian": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-atlassian"],
       "env": {
-        "ATLASSIAN_DOMAIN": "$atlassian_domain",
-        "ATLASSIAN_EMAIL": "$atlassian_email",
-        "ATLASSIAN_API_TOKEN": "$atlassian_token"
+        "ATLASSIAN_DOMAIN": "$ATLASSIAN_DOMAIN",
+        "ATLASSIAN_EMAIL": "$ATLASSIAN_EMAIL",
+        "ATLASSIAN_API_TOKEN": "$ATLASSIAN_TOKEN"
       }
     }
 EOF
@@ -268,10 +280,10 @@ display_usage_instructions() {
     echo "  • Playwright: Ask Claude to automate web browser tasks"
     echo "  • Atlassian: Ask Claude to search Jira issues or Confluence pages"
     echo
-    if [ -n "$github_token" ] || [ -n "$atlassian_domain" ]; then
-        echo -e "${GREEN}✓ API credentials configured${NC}"
+    if [ -n "$GITHUB_TOKEN" ] || [ -n "$ATLASSIAN_DOMAIN" ]; then
+        echo -e "${GREEN}✓ API credentials configured from config.yml${NC}"
     else
-        echo -e "${YELLOW}⚠ Remember to configure API credentials for full functionality${NC}"
+        echo -e "${YELLOW}⚠ Edit config.yml to configure API credentials for full functionality${NC}"
     fi
 }
 
@@ -317,6 +329,7 @@ main() {
     # Set configuration paths based on project directory
     CLAUDE_CODE_CONFIG_DIR="$project_dir/.claude-code"
     MCP_CONFIG_FILE="$CLAUDE_CODE_CONFIG_DIR/mcp_servers.json"
+    CONFIG_YML_FILE="$project_dir/setup/config.yml"
     
     display_header
     
@@ -337,10 +350,18 @@ main() {
     echo
     
     backup_existing_config
+    echo
     
-    # Get user input for API configurations
-    get_github_token
-    get_atlassian_config
+    # Create and read config.yml
+    create_config_template "$project_dir/setup/config.yml.template" "$CONFIG_YML_FILE"
+    echo
+    
+    if [ -f "$CONFIG_YML_FILE" ]; then
+        parse_config_yml "$CONFIG_YML_FILE"
+    else
+        echo -e "${YELLOW}⚠ Config file not found. Using default configuration.${NC}"
+    fi
+    echo
     
     # Generate configuration
     generate_mcp_config "$project_dir"

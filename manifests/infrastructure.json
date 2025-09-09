@@ -1,0 +1,10 @@
+[
+  {
+    "path": "infrastructure/docker-compose.yaml",
+    "content": "version: '3.9'\nservices:\n  db:\n    image: postgres:16\n    environment:\n      POSTGRES_PASSWORD: postgres\n      POSTGRES_DB: appdb\n    ports: ['5432:5432']\n    volumes: ['pgdata:/var/lib/postgresql/data']\nvolumes: { pgdata: {} }\n"
+  },
+  {
+    "path": "infrastructure/migrations/0001_init.sql",
+    "content": "-- baseline schema\nCREATE TABLE IF NOT EXISTS health ( id int PRIMARY KEY, status text NOT NULL );\nINSERT INTO health (id, status) VALUES (1, 'ok') ON CONFLICT (id) DO NOTHING;\n"
+  }
+]

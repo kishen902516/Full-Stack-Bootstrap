@@ -1,0 +1,10 @@
+[
+  {
+    "path": ".vscode/tasks.json",
+    "content": "{\n  \"version\": \"2.0.0\",\n  \"tasks\": [\n    { \"label\": \"TDD: watch FE\",  \"type\": \"shell\", \"command\": \"npm run test:watch\", \"options\": { \"cwd\": \"app-frontend\" } },\n    { \"label\": \"Architecture check\", \"type\": \"shell\", \"command\": \"npm run arch:check && dotnet test ./app-api/tests/ArchitectureTests\", \"options\": { \"cwd\": \"app-frontend\" } },\n    { \"label\": \"Contract verify\", \"type\": \"shell\", \"command\": \"npm run api:lint && npm run api:diff\", \"options\": { \"cwd\": \"app-frontend\" } },\n    { \"label\": \"E2E: Run\", \"type\": \"shell\", \"command\": \"npm run e2e\", \"options\": { \"cwd\": \"app-frontend\" } },\n    { \"label\": \"E2E: Report\", \"type\": \"shell\", \"command\": \"npm run e2e:report\", \"options\": { \"cwd\": \"app-frontend\" } },\n    { \"label\": \"Context7: Refresh Index\", \"type\": \"shell\", \"command\": \"node tools/mcp/context7-index.js\" },\n    { \"label\": \"TDD: watch API\", \"type\": \"shell\", \"command\": \"dotnet watch test ./app-api/tests/UnitTests\" }\n  ]\n}\n"
+  },
+  {
+    "path": ".vscode/extensions.json",
+    "content": "{\n  \"recommendations\": [\"anthropic.claude-dev\"]\n}\n"
+  }
+]

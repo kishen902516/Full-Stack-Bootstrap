@@ -80,6 +80,9 @@ mkdir -p "$PROJECT"
 # -------- merge manifests --------
 say "Merging manifest files from $MANIFEST_DIR…"
 
+# Get absolute path to bootstrap directory before changing directories
+BOOTSTRAP_DIR="$(dirname "$(realpath "$0")")"
+
 # Create a temporary merged manifest
 echo "[]" > "$PROJECT/manifest.json"
 
@@ -131,6 +134,23 @@ for(const {path:p,content} of items){
 console.log(`Wrote ${count} files ✔`);
 NODE
 ok "Files written"
+
+# -------- copy Claude Code and Agent OS directories --------
+say "Copying Claude Code configuration…"
+if [[ -d "$BOOTSTRAP_DIR/.claude/agents" ]]; then
+  mkdir -p ".claude"
+  cp -r "$BOOTSTRAP_DIR/.claude/agents" ".claude/" || say "Warning: Could not copy .claude/agents"
+  ok "Copied .claude/agents"
+fi
+if [[ -d "$BOOTSTRAP_DIR/.claude/commands" ]]; then
+  mkdir -p ".claude"
+  cp -r "$BOOTSTRAP_DIR/.claude/commands" ".claude/" || say "Warning: Could not copy .claude/commands"
+  ok "Copied .claude/commands"
+fi
+if [[ -d "$BOOTSTRAP_DIR/.agent-os" ]]; then
+  cp -r "$BOOTSTRAP_DIR/.agent-os" "./" || say "Warning: Could not copy .agent-os"
+  ok "Copied .agent-os to root"
+fi
 
 # -------- git init / gitflow --------
 if [[ ! -d .git ]]; then

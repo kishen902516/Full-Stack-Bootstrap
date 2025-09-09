@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(./bootstrap.sh:*)",
+      "Bash(BOOTSTRAP_DIR=\"/c/development/projects/personal projects/Full-Stack-Bootstrap\")",
+      "Bash(cp:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

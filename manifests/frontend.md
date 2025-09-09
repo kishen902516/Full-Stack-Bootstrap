@@ -12,8 +12,8 @@ This manifest contains the file structure and content for the frontend component
     "test": "jest --ci --coverage",
     "test:watch": "jest --watch",
     "arch:check": "depcruise --config src/architecture/depcruise.config.js src | dependency-cruiser -",
-    "api:lint": "spectral lint --ruleset ../.spectral.yaml ../api/openapi.yaml",
-    "api:diff": "openapi-diff ../api/openapi.yaml ../api/openapi.yaml",
+    "api:lint": "spectral lint --ruleset ../.chubb/.spectral.yaml ../.chubb/api/openapi.yaml",
+    "api:diff": "openapi-diff ../.chubb/api/openapi.yaml ../.chubb/api/openapi.yaml",
     "e2e": "playwright test",
     "e2e:report": "playwright show-report",
     "e2e:trace": "playwright show-trace"

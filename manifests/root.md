@@ -140,11 +140,11 @@ For any change >100 added lines or cross-layer edits, create/attach a plan:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-git config core.hooksPath tools/hooks
-chmod +x tools/hooks/* || true
-chmod +x tools/git/flow.sh || true
-chmod +x tools/mcp/*.js || true
-chmod +x tools/metrics/check-pyramid.js || true
+git config core.hooksPath .claude/tools/hooks
+chmod +x .claude/tools/hooks/* || true
+chmod +x .chubb/tools/git/flow.sh || true
+chmod +x .claude/tools/mcp/*.js || true
+chmod +x .chubb/tools/metrics/check-pyramid.js || true
 echo "✅ Hooks installed."
 
 ```

@@ -153,7 +153,7 @@ echo "init-firewall: strict egress policy enabled"
   "mounts": [
     "source=${localEnv:USERPROFILE}/.claude,target=/home/node/.claude,type=bind,consistency=cached"
   ],
-  "postCreateCommand": "cd app-frontend && ( [ -f package-lock.json ] && npm ci || npm install ) || true && cd - >/dev/null && dotnet restore ./app-api/AppApi.sln && bash ./scripts/install-hooks.sh && node tools/mcp/context7-index.js",
+  "postCreateCommand": "cd app-frontend && ( [ -f package-lock.json ] && npm ci || npm install ) || true && cd - >/dev/null && dotnet restore ./app-api/AppApi.sln && bash ./.chubb/scripts/install-hooks.sh && node .claude/tools/mcp/context7-index.js",
   "postStartCommand": "sudo /usr/local/bin/init-firewall.sh || true",
   "customizations": {
     "vscode": {

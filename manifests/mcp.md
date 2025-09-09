@@ -11,18 +11,18 @@ This manifest contains the file structure and content for the mcp components.
   "mcpServers": {
     "github": { "command": "npx", "args": ["mcp-github"], "env": { "GITHUB_TOKEN": "${GITHUB_TOKEN}" }, "transport": "stdio" },
     "atlassian": { "command": "npx", "args": ["mcp-atlassian"], "env": { "ATLASSIAN_HOST": "${ATLASSIAN_HOST}", "ATLASSIAN_EMAIL": "${ATLASSIAN_EMAIL}", "ATLASSIAN_API_TOKEN": "${ATLASSIAN_API_TOKEN}" }, "transport": "stdio" },
-    "playwright": { "command": "node", "args": ["tools/mcp/playwright-server.js"], "transport": "stdio" },
-    "context7": { "command": "node", "args": ["tools/mcp/context7-server.js"], "env": { "CTX7_STORE": "${CTX7_STORE:./.context7}" }, "transport": "stdio" }
+    "playwright": { "command": "node", "args": [".claude/tools/mcp/playwright-server.js"], "transport": "stdio" },
+    "context7": { "command": "node", "args": [".claude/tools/mcp/context7-server.js"], "env": { "CTX7_STORE": "${CTX7_STORE:./.context7}" }, "transport": "stdio" }
   },
   "tools": [
     { "id": "arch_check",          "cmd": "bash -lc 'cd app-frontend && npm run arch:check && cd - >/dev/null && dotnet test ./app-api/tests/ArchitectureTests'" },
     { "id": "api_contract_verify", "cmd": "bash -lc 'cd app-frontend && npm run api:lint && npm run api:diff'" },
-    { "id": "test_pyramid",        "cmd": "node tools/metrics/check-pyramid.js" },
-    { "id": "security_scan",       "cmd": "gitleaks detect --no-git --redact --config tools/security/gitleaks.toml && semgrep --config tools/security/semgrep.yml" },
-    { "id": "git_feature",         "cmd": "bash tools/git/flow.sh feature ${args}" },
-    { "id": "git_release",         "cmd": "bash tools/git/flow.sh release ${args}" },
-    { "id": "plan_create",         "cmd": "node tools/mcp/plan-create.js ${args}" },
-    { "id": "plan_check",          "cmd": "node tools/mcp/plan-check.js ${args}" }
+    { "id": "test_pyramid",        "cmd": "node .chubb/tools/metrics/check-pyramid.js" },
+    { "id": "security_scan",       "cmd": "gitleaks detect --no-git --redact --config .chubb/tools/security/gitleaks.toml && semgrep --config .chubb/tools/security/semgrep.yml" },
+    { "id": "git_feature",         "cmd": "bash .chubb/tools/git/flow.sh feature ${args}" },
+    { "id": "git_release",         "cmd": "bash .chubb/tools/git/flow.sh release ${args}" },
+    { "id": "plan_create",         "cmd": "node .claude/tools/mcp/plan-create.js ${args}" },
+    { "id": "plan_check",          "cmd": "node .claude/tools/mcp/plan-check.js ${args}" }
   ]
 }
 
@@ -53,7 +53,7 @@ process.stdout.write(JSON.stringify({id:req.id, ok:true, stdout:resStr})+'
 
 ```javascript
 #!/usr/bin/env node
-const fs=require('fs'), globby=require('globby');(async()=>{const cfg=fs.readFileSync('context7/sources.yaml','utf8');const include=[...cfg.matchAll(/- "([^"]+)"/g)].map(m=>m[1]);const files=await globby(include,{gitignore:true});fs.mkdirSync('.context7',{recursive:true});fs.writeFileSync('.context7/manifest.json',JSON.stringify({files},null,2));console.log(`Indexed ${files.length} files for Context7`);})();
+const fs=require('fs'), globby=require('globby');(async()=>{const cfg=fs.readFileSync('.claude/context7/sources.yaml','utf8');const include=[...cfg.matchAll(/- "([^"]+)"/g)].map(m=>m[1]);const files=await globby(include,{gitignore:true});fs.mkdirSync('.context7',{recursive:true});fs.writeFileSync('.context7/manifest.json',JSON.stringify({files},null,2));console.log(`Indexed ${files.length} files for Context7`);})();
 
 ```
 
@@ -64,7 +64,7 @@ const fs=require('fs'), globby=require('globby');(async()=>{const cfg=fs.readFil
 ```javascript
 #!/usr/bin/env node
 const fs=require('fs'), { spawnSync }=require('child_process'), globby=require('globby');
-async function refresh(){ spawnSync('node',['tools/mcp/context7-index.js'],{stdio:'inherit'}); return 'OK'; }
+async function refresh(){ spawnSync('node',['.claude/tools/mcp/context7-index.js'],{stdio:'inherit'}); return 'OK'; }
 async function search(glob){ const files=await globby(glob,{gitignore:true}); return files.slice(0,50); }
 function read(p,start=0,end=2000){ return fs.readFileSync(p,'utf8').slice(Number(start),Number(end)); }
 process.stdin.on('data', async (chunk)=>{ const lines=chunk.toString().split('
@@ -104,7 +104,7 @@ const fs=require('fs'),path=require('path');const args=process.argv.slice(2).joi
 
 ```javascript
 #!/usr/bin/env node
-const fs=require('fs');const id=process.argv[2];if(!id||!fs.existsSync(`plans/${id}.md`)){ console.error('Missing or invalid plan. Create one with /plan create "<title>".'); process.exit(1);} console.log('Plan OK');
+const fs=require('fs');const id=process.argv[2];if(!id||!fs.existsSync(`.chubb/plans/${id}.md`)){ console.error('Missing or invalid plan. Create one with /plan create "<title>".'); process.exit(1);} console.log('Plan OK');
 
 ```
 

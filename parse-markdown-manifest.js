@@ -27,7 +27,7 @@ function parseMarkdownManifest(mdFile) {
         continue;
       }
       
-      if (line === '```' && inCodeBlock) {
+      if (line.startsWith('```') && inCodeBlock) {
         inCodeBlock = false;
         fileContent = codeBlockLines.join('\n');
         break;

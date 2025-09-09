@@ -95,12 +95,36 @@ const fs=require('fs'), path=require('path');
 const mfPath=process.argv[2];
 const items=JSON.parse(fs.readFileSync(mfPath,'utf8'));
 let count=0;
+
+// Determine if a file is Claude-specific
+function isClaudeFile(p) {
+  return /^(claude\.md|mcp\/|tools\/mcp\/|tools\/hooks\/|context7\/)/.test(p);
+}
+
+// Determine if a file should remain in root (source code, infrastructure, and devcontainer)
+function isSourceFile(p) {
+  return /^(app-frontend\/|app-api\/|infrastructure\/|\.devcontainer\/)/.test(p);
+}
+
 for(const {path:p,content} of items){
-  const dir=path.dirname(p);
+  let targetPath = p;
+  
+  // Redirect files to appropriate folders
+  if (!isSourceFile(p)) {
+    if (isClaudeFile(p)) {
+      targetPath = '.claude/' + p;
+    } else {
+      targetPath = '.chubb/' + p;
+    }
+  }
+  
+  const dir=path.dirname(targetPath);
   fs.mkdirSync(dir,{recursive:true});
-  fs.writeFileSync(p, content, 'utf8');
-  if(/(^tools\/hooks\/|^tools\/git\/flow\.sh$|^scripts\/install-hooks\.sh$|^tools\/mcp\/.*\.js$|^tools\/metrics\/check-pyramid\.js$)/.test(p)){
-    try{ fs.chmodSync(p,0o755); }catch(e){}
+  fs.writeFileSync(targetPath, content, 'utf8');
+  
+  // Set executable permissions for specific files
+  if(/(tools\/hooks\/|tools\/git\/flow\.sh$|scripts\/install-hooks\.sh$|tools\/mcp\/.*\.js$|tools\/metrics\/check-pyramid\.js$)/.test(p)){
+    try{ fs.chmodSync(targetPath,0o755); }catch(e){}
   }
   count++;
 }
@@ -124,7 +148,7 @@ fi
 
 if [[ $INIT_GITFLOW -eq 1 ]]; then
   say "Setting up GitFlow branches (main & develop)…"
-  bash tools/git/flow.sh init || say "GitFlow may be already initialized; continuing."
+  bash .chubb/tools/git/flow.sh init || say "GitFlow may be already initialized; continuing."
 fi
 
 # -------- install deps & hooks --------
@@ -143,7 +167,7 @@ say "Restoring .NET solution…"
 dotnet restore ./app-api/AppApi.sln >/dev/null
 
 say "Installing git hooks…"
-bash scripts/install-hooks.sh
+bash .chubb/scripts/install-hooks.sh
 
 # -------- first sanity runs (optional) --------
 if [[ $RUN_TESTS -eq 1 ]]; then
@@ -159,7 +183,7 @@ if [[ $RUN_TESTS -eq 1 ]]; then
   say "Linting & verifying OpenAPI (contract)…"
   ( cd app-frontend && npm run api:lint && npm run api:diff )
   say "Checking test pyramid ratios…"
-  node tools/metrics/check-pyramid.js || say "Pyramid check not satisfied yet (add E2E/contract tests later)."
+  node .chubb/tools/metrics/check-pyramid.js || say "Pyramid check not satisfied yet (add E2E/contract tests later)."
 else
   say "Skipping initial tests (per --no-tests)."
 fi
@@ -170,7 +194,7 @@ cat <<'NEXT'
 
 Next steps:
   1) (Optional) Add env secrets for MCP servers:
-     cp env/.env.example env/.env   # then export vars in your shell/devcontainer
+     cp .chubb/env/.env.example .chubb/env/.env   # then export vars in your shell/devcontainer
   2) Open in Dev Container (VS Code: "Dev Containers: Rebuild and Reopen in Container")
   3) TDD loops:
      - dotnet watch test ./app-api/tests/UnitTests

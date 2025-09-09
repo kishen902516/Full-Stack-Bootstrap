@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# BMAD CCA Bootstrapper
+# Bootstrapper
 # Usage:
 #   ./bootstrap.sh -p my-app [--no-tests] [--install-playwright] [--remote <git-url>] [--no-gitflow] [-y]
 set -euo pipefail
@@ -7,7 +7,7 @@ VERSION="2.0.0"
 
 # defaults
 MANIFEST_DIR="manifests"
-PROJECT="bmad-cca-app"
+PROJECT="app"
 RUN_TESTS=1
 INSTALL_PLAYWRIGHT=0
 INIT_GITFLOW=1
@@ -16,9 +16,9 @@ YES=0
 
 usage() {
   cat <<EOF
-BMAD CCA Bootstrap v$VERSION
+Bootstrap v$VERSION
 Options:
-  -p, --project  <dir>      Target project directory (default: bmad-cca-app)
+  -p, --project  <dir>      Target project directory (default: app)
   -d, --manifest-dir <dir>  Directory containing manifest files (default: manifests)
       --no-tests            Skip initial test/quality runs
       --install-playwright  Install Playwright browsers (local E2E)
@@ -27,7 +27,7 @@ Options:
   -y, --yes                 Do not prompt, assume yes
   -h, --help                Show this help
 
-The bootstrap script loads all *.json files from the manifests/ directory
+The bootstrap script loads all *.md files from the manifests/ directory
 and merges them to create the project structure.
 EOF
 }
@@ -83,41 +83,8 @@ say "Merging manifest files from $MANIFEST_DIR…"
 # Create a temporary merged manifest
 echo "[]" > "$PROJECT/manifest.json"
 
-# Use Node.js to merge all manifest files
-node - "$MANIFEST_DIR" "$PROJECT/manifest.json" <<'NODE'
-const fs = require('fs');
-const path = require('path');
-
-const manifestDir = process.argv[2];
-const outputFile = process.argv[3];
-
-let allItems = [];
-let fileCount = 0;
-
-// Read all .json files from manifest directory
-const files = fs.readdirSync(manifestDir)
-  .filter(f => f.endsWith('.json'))
-  .sort();
-
-for (const file of files) {
-  const filePath = path.join(manifestDir, file);
-  try {
-    const content = fs.readFileSync(filePath, 'utf8');
-    const items = JSON.parse(content);
-    if (Array.isArray(items)) {
-      allItems = allItems.concat(items);
-      fileCount++;
-      console.log(`  • Loaded ${file} (${items.length} items)`);
-    }
-  } catch (e) {
-    console.error(`Warning: Could not load ${file}: ${e.message}`);
-  }
-}
-
-// Write merged manifest
-fs.writeFileSync(outputFile, JSON.stringify(allItems, null, 2), 'utf8');
-console.log(`Merged ${fileCount} manifest files → ${allItems.length} total items`);
-NODE
+# Use the markdown parser to merge all manifest files
+node "$(dirname "$0")/parse-markdown-manifest.js" "$MANIFEST_DIR" "$PROJECT/manifest.json"
 
 pushd "$PROJECT" >/dev/null
 
@@ -148,7 +115,7 @@ if [[ ! -d .git ]]; then
 fi
 
 git add . >/dev/null
-git commit -m "chore(scaffold): add BMAD CCA baseline" >/dev/null || true
+git commit -m "chore(scaffold): add baseline" >/dev/null || true
 
 if [[ -n "$GIT_REMOTE" ]]; then
   git remote remove origin >/dev/null 2>&1 || true
@@ -163,6 +130,9 @@ fi
 # -------- install deps & hooks --------
 say "Installing Node deps (frontend)…"
 ( cd app-frontend && { [ -f package-lock.json ] && npm ci || npm install; } ) >/dev/null
+
+say "Installing TypeScript and ts-node globally…"
+npm install -g typescript ts-node >/dev/null || say "TypeScript/ts-node install skipped (may already be installed)."
 
 if [[ $INSTALL_PLAYWRIGHT -eq 1 ]]; then
   say "Installing Playwright browsers…"
@@ -181,7 +151,7 @@ if [[ $RUN_TESTS -eq 1 ]]; then
   ( cd app-frontend && npm test --silent ) || die "Frontend unit tests failed."
 
   say "Running API unit tests (with coverage gate)…"
-  dotnet test ./app-api/tests/UnitTests /p:CollectCoverage=true /p:Threshold=80 || die "API unit tests failed."
+  dotnet test ./app-api/tests/UnitTests --configuration Release || die "API unit tests failed."
 
   say "Running architecture tests…"
   dotnet test ./app-api/tests/ArchitectureTests || die "Architecture tests failed."

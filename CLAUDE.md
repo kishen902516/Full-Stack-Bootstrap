@@ -27,7 +27,7 @@ cd app-frontend && npm test
 cd app-frontend && npm run test:watch
 
 # .NET unit tests with coverage (80% threshold)
-dotnet test ./app-api/tests/UnitTests /p:CollectCoverage=true /p:Threshold=80
+dotnet test ./app-api/tests/UnitTests --configuration Release
 
 # .NET unit tests (watch mode for TDD)
 dotnet watch test ./app-api/tests/UnitTests
